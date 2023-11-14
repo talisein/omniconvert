@@ -27,12 +27,16 @@
  *  at will, as is often required during conversion operations.
  */
 
-#include <windows.h>
+#include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
+
 #include "cheat.h"
+
+#include "armax.h"
 #include "common.h"
 #include "translate.h"
-
+#include "shim_windows.h"
 
 #define EXPANSION_DATA_FOLDER	0x0800
 #define FLAGS_FOLDER		0x5 << 20
@@ -131,7 +135,7 @@ void cheatRemoveOctets(cheat_t *cheat, int start, int count) {
 }
 
 void cheatDestroy(cheat_t *cheat) {
-	if(cheat) { 
+	if(cheat) {
 		if(cheat->name) free(cheat->name);
 		if(cheat->comment) free(cheat->comment);
 		if(cheat->code) free(cheat->code);

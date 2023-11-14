@@ -27,11 +27,12 @@
  * completely replaces rawconvert.c and better handles conversions.
  */
 
-#include <stdio.h>
-#include <malloc.h>
 #include <string.h>
-#include "abbtypes.h"
+#include <stdlib.h>
+
 #include "translate.h"
+#include "abbtypes.h"
+
 
 //Command types for devices using the "standard" code format.
 //A couple of special case types are mixed in.
@@ -71,7 +72,7 @@ enum {
 	ARM_NOT_EQUAL,				//Inequality tests with various skips
 	ARM_LESS_SIGNED,			//Signed less than tests with various skips
 	ARM_GREATER_SIGNED,			//Signed greater than tests with various skips
-	ARM_LESS_UNSIGNED,	
+	ARM_LESS_UNSIGNED,
 	ARM_GREATER_UNSIGNED,
 	ARM_AND,				//And mask tests.
 };
@@ -185,7 +186,7 @@ char *transGetErrorText(int idx) {
 
 int transBatchTranslate(cheat_t *src) {
 	cheat_t *dest = cheatInit(MAX_CODE_STEP);
-	int ret, i;
+	int ret = 0, i;
 
 	if(g_indevice == g_outdevice) return 0;
 
@@ -215,12 +216,12 @@ int transBatchTranslate(cheat_t *src) {
 }
 
 int transStdToMax(cheat_t *dest, cheat_t *src, int *idx) {
-	int i, cnt, trans, tmp, ret;
+	int trans, tmp, ret; //UNUSED i, cnt
 	u8 command, size;
 	u32 address, increment, offset, value, count, skip;
 	u32 *code = src->code;
-	
-	cnt = trans = ret = 0;
+
+	trans = ret = 0;
 	command = GET_STD_CMD(code[*idx]);
 	switch(command) {
 		case STD_WRITE_BYTE:
@@ -290,7 +291,18 @@ int transStdToMax(cheat_t *dest, cheat_t *src, int *idx) {
 			} else {
 				size 	= HIBYTE32(code[*idx]) & 0xF;
 				if(size < 1 && g_indevice == DEV_GS3) size = 1;  //GS3 does not do 8-bit writes (or 32 really).
-				address = code[*idx] & 0xFFFFFF + code[*idx + 1];
+
+                /* BUG?
+                 * was:   code[*idx] & 0xFFFFFF + code[*idx + 1];
+                 * But the operator precedence makes it
+                 *        code[*idx] & (0xFFFFFF + code[*idx + 1]);
+                 * Instead of
+                 *        (code[*idx] & 0xFFFFFF) + code[*idx + 1];
+                 *
+                 * For now, the previous behavior is kept to silence the
+                 * warning, but see issue #1 and add some test case to check.
+                */
+				address = code[*idx] & (0xFFFFFF + code[*idx + 1]);
 				offset 	= code[*idx + 2];
 				value 	= code[*idx + 3] & valmask[size];
 				count 	= 0;
@@ -430,7 +442,7 @@ int transStdToMax(cheat_t *dest, cheat_t *src, int *idx) {
 int transOther(cheat_t *dest, cheat_t *src, int *idx) {
 	u8 cmd = src->code[*idx] >> 28;
 	u8 size;
-	u32 addr, val;
+	u32 addr; //UNUSED: val
 
 	switch(cmd) {
 		case STD_WRITE_BYTE:
@@ -479,7 +491,7 @@ int transOther(cheat_t *dest, cheat_t *src, int *idx) {
 			break;
 		case STD_POINTER_WRITE:
 			if(*idx + 2 >= src->codecnt) return ERR_INVALID_CODE;
-			/* Attempt to translate pointer writes.  
+			/* Attempt to translate pointer writes.
 			so far as I know, GS3 stole (and subsequently wrecked) their format from the old AR
 			The second nibble is a size parameter, and the second word is a "load offset" that is added
 			to the address in the code (to accomodate addresses > 0xFFFFFF).  However, on the GS3, this infringes
@@ -619,7 +631,7 @@ int transOther(cheat_t *dest, cheat_t *src, int *idx) {
 }
 
 void transSmash(cheat_t *dest, u8 size, u32 address, u32 value, u32 fillcount) {
-	u32 bytes = fillcount << size, cnt = 0;
+	u32 bytes = fillcount << size;//UNUSED cnt
 
 	if(fillcount == 1) {
 		cheatAppendOctet(dest, MAKE_STD_CMD(size) | address);
@@ -674,12 +686,12 @@ void transSmash(cheat_t *dest, u8 size, u32 address, u32 value, u32 fillcount) {
 			address += 1;
 			bytes -= 1;
 		}
-		
+
 	}
 }
 
 void transExplode(cheat_t *dest, u8 size, u32 address, u32 value, u32 fillcount, u8 skip, u8 increment) {
-	u32 bytes = fillcount << size, cnt = 0;
+	//UNUSED u32 bytes = fillcount << size, cnt = 0;
 
 	if(skip == 1 && increment == 0) {
 		transSmash(dest, size, address, value, fillcount);
@@ -700,11 +712,11 @@ void transExplode(cheat_t *dest, u8 size, u32 address, u32 value, u32 fillcount,
 }
 
 int transMaxToStd(cheat_t *dest, cheat_t *src, int *idx) {
-	int i, cnt, trans, tmp, ret;
-	u8 command, size, type, subtype, type2, subtype2;
-	u32 address, increment, offset, value, count, skip;
+	int cnt, trans, tmp, ret;// UNUSED i
+	u8 size, type, subtype, type2, subtype2;//UNUSED command
+	u32 address, offset, value, count, skip;//UNUSED increment
 	u32 *code = src->code;
-	
+
 	trans = cnt = ret = 0;
 	if(code[*idx] == ARM_CMD_SPECIAL) {
 		if(code[*idx + 1] == ARM_CMD_RESUME) {
@@ -734,7 +746,7 @@ int transMaxToStd(cheat_t *dest, cheat_t *src, int *idx) {
 		}
 	}
 
-	command	= GET_ARM_CMD(code[*idx]);
+//	command	= GET_ARM_CMD(code[*idx]);
 	type	= GET_ARM_TYPE(code[*idx]);
 	subtype = GET_ARM_SUBTYPE(code[*idx]);
 	size	= GET_ARM_SIZE(code[*idx]);
@@ -817,7 +829,7 @@ int transMaxToStd(cheat_t *dest, cheat_t *src, int *idx) {
 	else {  //test commands
 		if(type == ARM_LESS_SIGNED || type == ARM_GREATER_SIGNED || subtype == ARM_SKIP_ALL_INV || (subtype == ARM_AND && g_outdevice != DEV_CB)) {
 			ret = ERR_TEST_TYPE;
-		} 
+		}
 		if(size == SIZE_BYTE && g_outdevice != DEV_CB) ret = ERR_TEST_SIZE;
 		trans = 0;
 		if(size == SIZE_WORD) {
@@ -827,7 +839,7 @@ int transMaxToStd(cheat_t *dest, cheat_t *src, int *idx) {
 					subtype2	= GET_ARM_SUBTYPE(code[*idx + 2]);
 					if(type2 == ARM_WRITE && subtype2 == ARM_HOOK) {
 						if(g_outdevice == DEV_AR2) {
-							cheatAppendOctet(dest, MAKE_STD_CMD(AR2_COND_HOOK) | ADDR(code[*idx]) + 1);
+							cheatAppendOctet(dest, MAKE_STD_CMD(AR2_COND_HOOK) | (ADDR(code[*idx]) + 1));
 							cheatAppendOctet(dest, ADDR(code[*idx]));
 							cheatAppendOctet(dest, ADDR(code[*idx + 1]));
 							cheatAppendOctet(dest, 0);
@@ -848,11 +860,11 @@ int transMaxToStd(cheat_t *dest, cheat_t *src, int *idx) {
 			if(type == ARM_AND) type-=2;
 			else if(type <= ARM_NOT_EQUAL) type--;
 			else type-=3;
-			
+
 			if(subtype == ARM_SKIP_1) skip = 2;
 			else if(subtype == ARM_SKIP_2) skip = 4;
 			else skip = src->codecnt;			//max
-			
+
 			//temporarily append the code
 			int tmpout = dest->codecnt;
 			size = size == SIZE_HALF ? 0 : 1;
@@ -876,7 +888,7 @@ int transMaxToStd(cheat_t *dest, cheat_t *src, int *idx) {
 				dest->code[tmpout+1]	= (type << 20) | (size << 16) | value;
 			} else {
 				dest->code[tmpout]	= MAKE_STD_CMD(STD_TEST_MULTI) | (size << 24) | (tmpcnt << 16) | value;
-			}	
+			}
 		}
 	}
 	return ret;

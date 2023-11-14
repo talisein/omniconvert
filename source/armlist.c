@@ -27,12 +27,13 @@
  */
 
 #include <stdlib.h>
-#include <windows.h>
+#include <string.h>
+
+#include "armlist.h"
+
 #include "common.h"
 #include "crc32.h"
-#include "armlist.h"
-#include "armax.h"
-#include "translate.h"
+#include "shim_windows.h"
 
 #define LIST_VERSION		0xD00DB00B
 #define NUM_DIGITS_OCTET	8
@@ -45,7 +46,7 @@ int alCreateList(cheat_t *cheat, game_t *game, char *szFileName) {
 	list_t list;
 	cheat_t *first = cheat;
 	wchar_t uname[NAME_MAX_SIZE+2];
-	char *defname = "Unnamed Game", comment[NAME_MAX_SIZE + 1];
+	char *defname = "Unnamed Game";//UNUSED comment[NAME_MAX_SIZE + 1];
 	HANDLE hFile;
 	DWORD dwBytesOut;
 
@@ -64,9 +65,9 @@ int alCreateList(cheat_t *cheat, game_t *game, char *szFileName) {
 				cheat->name[namesize] = '\0';
 			}
 			namesize++;
-			end = strchr(cheat->comment, '\r');
+			end = (u8*)strchr(cheat->comment, '\r');
 			if(end > 0) {
-				*end = '\0';
+				*end = (u8)'\0';
 				commentsize = strlen(cheat->comment);
 				if(commentsize > NAME_MAX_SIZE) {
 					commentsize = NAME_MAX_SIZE;
@@ -110,7 +111,7 @@ int alCreateList(cheat_t *cheat, game_t *game, char *szFileName) {
 	size += tsize + sizeof(wchar_t);
 
 
-	
+
 	buffer = malloc(size + sizeof(list_t));
 	if(!buffer) {
 		MsgBox(NULL, MB_OK | MB_ICONERROR, "Unable to allocate output buffer for AR MAX list");
@@ -166,7 +167,7 @@ int alCreateList(cheat_t *cheat, game_t *game, char *szFileName) {
 	memcpy(fullbuf, &list, sizeof(list_t));
 	buffer=fullbuf + (sizeof(list_t) - sizeof(u32) * 2);
 	crc = 0xFFFFFFFF;
-	int i;
+	//int i;
 	list.crc	= crc32(buffer, list.size, crc);
 	memcpy(fullbuf, &list, sizeof(list_t));
 	size+=sizeof(list_t);
@@ -180,4 +181,5 @@ int alCreateList(cheat_t *cheat, game_t *game, char *szFileName) {
 	WriteFile(hFile, fullbuf, size, &dwBytesOut, NULL);
 	CloseHandle(hFile);
 	free(fullbuf);
+    return 0; // return no error
 }

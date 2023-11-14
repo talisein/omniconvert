@@ -25,7 +25,6 @@
 #define _TRANSLATE_H_
 
 #include "abbtypes.h"
-#include "armlist.h"
 #include "cheat.h"
 
 enum {
@@ -44,5 +43,8 @@ void transSetErrorSuppress(u8 val);
 void transToggleErrorSuppress();
 int transBatchTranslate(cheat_t *src);
 char *transGetErrorText(int idx);
+int transStdToMax(cheat_t *dest, cheat_t *src, int *idx);
+int transMaxToStd(cheat_t *dest, cheat_t *src, int *idx);
+int transOther(cheat_t *dest, cheat_t *src, int *idx);
 
 #endif //_TRANSLATE_H_

@@ -49,8 +49,8 @@ static int incdec(const big_int *a, bin_op_type op, big_int *answer)
         return 1;
     }
 
-    if (answer->sign == PLUS && op == ADD ||
-        answer->sign == MINUS && op == SUB) {
+    if ((answer->sign == PLUS && op == ADD) ||
+        (answer->sign == MINUS && op == SUB)) {
         /*
             Add 1 to [answer]. For this allocate one digit and
             set it to zero before calling low_level_add() function.
@@ -422,7 +422,7 @@ void big_int_cmp(const big_int *a, const big_int *b, int *cmp_flag)
 /**
     Divides [a] by [b]:
         q = a / b
-    
+
     Founds quotient [q] and reminder [r], if its pointers is not set to NULL.
     So, a = q * b + r
 

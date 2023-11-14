@@ -22,6 +22,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include <string.h>
+
+#include "ar2.h"
+
+
+
 /*
  *  Much of this fire is misfire's implementation of the well-known
  *  and simple, old AR encryption.  I (Pyriel) added the batch
@@ -235,16 +241,17 @@ u32 ar2GetSeed() {
 	u32 key;
 	memcpy(&key, g_seed, 4);
 	key = swapbytes(key);
+    return key;
 }
 
 //Batch decrypt an array of u32s
 void ar2BatchDecryptArr(u32 *code, u32 *size) {
 	u32 i, j;
-	
+
 	for(i = 0; i < *size; i+=2) {
 		code[i] = ar2decrypt(code[i], g_seed[0], g_seed[1]);
 		code[i+1] = ar2decrypt(code[i+1], g_seed[2], g_seed[3]);
-		if(code[i] == 0xDEADFACE) { 
+		if(code[i] == 0xDEADFACE) {
 			ar2SetSeed(code[i+1]);
 			j = i + 2;
 			if(j < *size) {
@@ -262,11 +269,11 @@ void ar2BatchDecryptArr(u32 *code, u32 *size) {
 void ar2BatchDecrypt(cheat_t *cheat) {
 	u32 i;
 	u32 *code = cheat->code;
-	
+
 	for(i = 0; i < cheat->codecnt; i+=2) {
 		code[i] = ar2decrypt(code[i], g_seed[0], g_seed[1]);
 		code[i+1] = ar2decrypt(code[i+1], g_seed[2], g_seed[3]);
-		if(code[i] == 0xDEADFACE) { 
+		if(code[i] == 0xDEADFACE) {
 			ar2SetSeed(code[i+1]);
 			cheatRemoveOctets(cheat, i+1, 2);
 			i-=2;

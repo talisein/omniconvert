@@ -28,11 +28,15 @@
  */
 
 
-#include <windows.h>
-#include "armlist.h"
+#include <string.h>
+#include <stdlib.h>
+#include <stddef.h>
+
+#include "cbc.h"
+
 #include "cb2_crypto.h"
 #include "common.h"
-#include "cbc.h"
+#include "shim_windows.h"
 
 #define CB7_HDR_SIZE 64
 
@@ -44,18 +48,19 @@ int cbcCreateFile(cheat_t *cheat, game_t *game, char *szFileName, u8 doheadings)
 	cheat_t *first = cheat;
 	HANDLE hFile;
 	DWORD dwBytesOut;
-	
+    ptrdiff_t buffer_remaining_size = 0;
+
 	//first compute the size of the file
 	//the header is only the game name for CB7
 	memset(name, 0, CB7_HDR_SIZE);
-	strncpy(name, game->name, namemax);
+	strncpy((char*)name, game->name, namemax);
 	name[namemax] = '\0';
 
 	//Size of the game name for the list itself (unpadded)
-	datasize += strlen(name) + 1;
+	datasize += strlen((char*)name) + 1;
 	//Number of cheats in file
 	datasize += sizeof(u16);
-	
+
 	//total up size of data and check that the codes will make a valid file.
 	while(cheat) {
 		if(cheat == first) {
@@ -99,28 +104,38 @@ int cbcCreateFile(cheat_t *cheat, game_t *game, char *szFileName, u8 doheadings)
 	//Add the header size to the data size, and allocate a buffer.
 	filesize += datasize;
 	buffer = (u8 *)malloc(filesize);
+    buffer_remaining_size = filesize;
 	if(!buffer) {
 		MsgBox(NULL, MB_OK | MB_ICONERROR, "Unable to allocate output buffer for CBC file");
 		return 1;
 	}
-	
+
 	cbcdata = buffer;
 	memset(buffer, 0, filesize);
 	//copy the whole thing as the header
 	memcpy(buffer, name, CB7_HDR_SIZE);
 	buffer += CB7_HDR_SIZE;
+    buffer_remaining_size -= CB7_HDR_SIZE;
 	//copy just the valid characters as the game name
-	strcpy(buffer, name);
-	buffer += strlen(name) + 1;
+	strcpy((char*)buffer, (char*)name);
+	buffer += strlen((char*)name) + 1;
+    buffer_remaining_size -= strlen((char*)name) + 1;
 	memcpy(buffer, &numcheats, sizeof(u16));
 	buffer += sizeof(u16);
+    buffer_remaining_size -= sizeof(u16);
 
 	cheat = first;
 	while(cheat) {
 		if(!cheat->state && (doheadings || cheat->codecnt > 0)) {
 			size = strlen(cheat->name);
-			if(size > namemax) size = namemax;
-			strncpy(buffer, cheat->name, size);
+			if (size > namemax) {
+                size = namemax;
+            }
+            if (buffer_remaining_size < size) {
+                MsgBox(NULL, MB_OK | MB_ICONERROR, "Buffer too small for name");
+                return 1;
+            }
+			strncpy((char*)buffer, cheat->name, buffer_remaining_size);
 			buffer[size] = '\0';
 			buffer += size + 1;			//skip switch
 			if(cheat->codecnt == 0) *buffer = 4;
@@ -139,7 +154,7 @@ int cbcCreateFile(cheat_t *cheat, game_t *game, char *szFileName, u8 doheadings)
 	hFile = CreateFile(szFileName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL);
 	if (hFile == INVALID_HANDLE_VALUE) {
 		MsgBox(NULL, MB_ICONERROR | MB_OK, "Could not open cbc file \"%s\"", szFileName);
-		return FALSE;
+		return FALSE; // BUG?
 	}
 
 	buffer = cbcdata + CB7_HDR_SIZE;
@@ -148,4 +163,5 @@ int cbcCreateFile(cheat_t *cheat, game_t *game, char *szFileName, u8 doheadings)
 	WriteFile(hFile, cbcdata, filesize, &dwBytesOut, NULL);
 	CloseHandle(hFile);
 	free(cbcdata);
+    return 0;
 }

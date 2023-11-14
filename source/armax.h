@@ -26,7 +26,7 @@
 
 #include "abbtypes.h"
 #include "cheat.h"
-#include <windows.h>
+#include "shim_windows.h"
 
 #define EXPANSION_DATA_FOLDER	0x0800
 #define FLAGS_FOLDER		0x5 << 20
