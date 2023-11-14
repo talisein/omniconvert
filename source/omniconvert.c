@@ -1018,7 +1018,8 @@ BOOL EnumerateDrivesAddToMenu(HWND hwnd) {
 	return FALSE;
 }
 
-BOOL CALLBACK ArDlgProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+DLGPROC ArDlgproc;
+INT_PTR CALLBACK ArDlgProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam) {
 	char buffer[NUM_DIGITS_OCTET + 1] = { 0 };
 	u32 key;
 	u32 ar1seed = AR1_SEED;
@@ -1052,7 +1053,8 @@ BOOL CALLBACK ArDlgProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam
 	return FALSE;
 }
 
-BOOL CALLBACK DlgProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+DLGPROC Dlgproc;
+INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam) {
 	static HWND hCtrl;
 	static char szFileName[MAX_PATH];
 	static char szTitleName[MAX_PATH];
