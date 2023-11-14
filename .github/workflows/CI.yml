@@ -117,7 +117,7 @@ jobs:
           arch: win32
 
       - name: Configure
-        run: meson setup build --buildtype release
+        run: meson setup --buildtype release --warnlevel 2 build
 
       - name: Compile
         run: meson compile -C build

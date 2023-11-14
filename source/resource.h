@@ -22,10 +22,6 @@
 #define ID_FILE_SAVEASSMC		40070
 #define ID_FILE_EXIT                    40003
 #define ID_EDIT                         40004
-#define ID_EDIT_UNDO                    40005
-#define ID_EDIT_CUT                     40006
-#define ID_EDIT_COPY                    40007
-#define ID_EDIT_PASTE                   40008
 #define ID_EDIT_DELETE                  40009
 #define ID_EDIT_SELECTALL               40010
 #define ID_INPUT                        50001
@@ -117,7 +113,7 @@
 #define IDI_ICON1                       65001
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        104
