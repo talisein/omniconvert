@@ -662,6 +662,8 @@ int ProcessText(HWND hwnd) {
 	free(name);
 	free(textout);
 	free(textin);
+
+    return 0;
 }
 
 void InitOfn(OPENFILENAME *ofn, HWND hwnd, char *szFileName, char *szTitleName)
