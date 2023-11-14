@@ -42,6 +42,7 @@
 #include "armlist.h"
 #include "cbc.h"
 #include "p2m.h"
+#include "armax.h"
 #include "scf.h"
 #include "resource.h"
 #include "afxres.h"
@@ -261,7 +262,7 @@ void ResetDevices(u8 mode) {
 	}
 }
 int DecryptCode(cheat_t *cheat) {
-	int i, ret = 0, err = 0;
+	int ret = 0;//UNUSED i, err
 
 	if(cheat->codecnt == 0) return 0;
 	switch(g_incrypt) {
@@ -289,7 +290,7 @@ int DecryptCode(cheat_t *cheat) {
 }
 
 int TranslateCode(cheat_t *cheat) {
-	int i, ret = 0, err = 0;
+	int err = 0;//UNUSED i, ret
 
 	if(cheat->codecnt == 0) return 0;
 
@@ -320,7 +321,7 @@ int TranslateCode(cheat_t *cheat) {
 }
 
 int EncryptCode(cheat_t *cheat) {
-	int i, ret = 0, err = 0;
+	int ret = 0;//UNUSED i, err
 
 	if(cheat->codecnt == 0) return 0;
 	switch(g_outcrypt) {
@@ -369,7 +370,7 @@ void CleanupCheats(cheat_t *cheat) {
 }
 
 void CheatToText(char **textout, int *textmax, cheat_t *cheat) {
-	int err, i;
+	int i;//UNUSED err
 
 	if(strlen(cheat->name)) {
 		AppendText(textout, cheat->name, textmax);
@@ -437,12 +438,12 @@ inline void ProcessCode(char **textout, int *textmax, char delim, cheat_t *cheat
 
 int ProcessText(HWND hwnd) {
 	int namemax = BUFFER_SIZE;
-	char buffer[BUFFER_SIZE+1], *end, delim[2];
+	char buffer[BUFFER_SIZE+1], *end;//UNUSED, delim[2];
 	char format[BUFFER_SIZE+1], *name = malloc(namemax+1);
 	char *textout, *textin, **s, *line;
 	static char *defname = "Unnamed Game";
-	int ret, chrs, mode, i, type, err, crlf, ctrl, toknum = 0, tokmax=TOK_MAX_STEP, linetok;
-	u32 tmp, num = 0, *max, dischash = 0;
+	int ret, chrs, i, type, err, ctrl, toknum = 0, tokmax=TOK_MAX_STEP, linetok;//UNUSED mode, crlf
+	u32 num = 0, *max, dischash = 0;//UNUSED tmp
 	cheat_t *cheat = NULL, *prevCheat = NULL, *firstCheat = NULL;
 	u8 namedone = 0;
 	token_t *tok;
@@ -964,8 +965,8 @@ BOOL SaveOptions(void) {
 BOOL LoadOptions (void) {
 	HKEY hKey;
 	DWORD disp;
-	DWORD type, size;
-	u32 key; //temp for ar2seeds;
+    //UNUSED type, size
+	//UNUSED u32 key; //temp for ar2seeds;
 	if(RegCreateKeyEx(HKEY_CURRENT_USER, REGSUBKEY, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_READ, NULL, &hKey, &disp) == ERROR_SUCCESS) {
 		if(disp == REG_OPENED_EXISTING_KEY) {
 			g_input		= RegReadDword(hKey, REGINPUT, DEF_INPUT);
