@@ -44,6 +44,7 @@
 #include "p2m.h"
 #include "scf.h"
 #include "resource.h"
+#include "afxres.h"
 
 //WINDOWS CRAP
 HINSTANCE g_hInstance;
