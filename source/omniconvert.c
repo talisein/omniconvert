@@ -929,7 +929,7 @@ void SetArmHashOption(HWND hwnd, DWORD item) {
 		if(item == i) {
 			CheckMenuItem(GetMenu(hwnd), i, MF_CHECKED);
 			GetMenuItemInfo(GetMenu(hwnd), i, FALSE, &mii);
-			g_hashdrive = mii.dwItemData;
+			g_hashdrive = (char)(uintptr_t)mii.dwItemData;
 
 		} else  CheckMenuItem(GetMenu(hwnd), i, MF_UNCHECKED);
 	}
@@ -985,9 +985,9 @@ BOOL LoadOptions (void) {
 }
 
 BOOL EnumerateDrivesAddToMenu(HWND hwnd) {
-	DWORD len, drives;
+	DWORD drives;
 	int i;
-	UINT type, count = 0;
+	UINT count = 0;
 	char pathname[MAX_PATH + 1], szMenu[MAX_PATH + 1];
 	MENUITEMINFO mii;
 
@@ -1008,7 +1008,7 @@ BOOL EnumerateDrivesAddToMenu(HWND hwnd) {
 			strcat(pathname, ":\\");
 			if(GetDriveType(pathname) == DRIVE_CDROM) {
 				mii.cch = sprintf(szMenu, "Use Drive %s", pathname);
-				mii.dwItemData = (DWORD)pathname[0];
+				mii.dwItemData = (ULONG_PTR)(uintptr_t)pathname[0];
 				mii.wID += i;
 				InsertMenuItem(GetMenu(hwnd), ID_ARMAXHASH_NOHASH, FALSE, &mii);
 				count++;
