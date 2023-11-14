@@ -26,7 +26,7 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 #include "abbtypes.h"
-#include <windows.h>
+#include "shim_windows.h"
 
 #define NEWLINE "\r\n"
 #define APPNAME "Omniconvert"
@@ -41,7 +41,7 @@ u32 swapbytes(unsigned int val);
 
 //Text crap
 int AppendText(char **dest, const char *src, u32 *textmax);
-int PrependText(char **dest, const char *src, u32 *textmax);
+void PrependText(char **dest, const char *src, u32 *textmax);
 int AppendNewLine(char **dest, int num, u32 *textmax);
 
 //MsgBox

@@ -40,11 +40,15 @@
  *
  */
 
-#include <windows.h>
-#include <malloc.h>
+
+#include <string.h>
+#include <stdlib.h>
 #include <time.h>
+
 #include "p2m.h"
+
 #include "gs3.h"
+#include "shim_windows.h"
 
 //MT State Table for file encryption
 const char *rootid[NUM_REGIONS] = {"BLAZE_USA", "BLAZE_UK", "BLAZE_JAPAN"};  //guessing on the last two.
@@ -81,7 +85,7 @@ void p2mInitFd(p2mfd_t *fd, struct tm *currtime, const char *name, const u32 att
 
 int p2mCreateFile(cheat_t* cheat, game_t *game, char *szFileName, u8 doheadings) {
 	u8 *buffer, *userdata, mcode = 0;
-	u32 numcheats = 0, numlines = 0, size, filesize, i;
+	u32 numlines = 0, size, filesize, i;//UNUSED numcheats
 	cheat_t *first = cheat;
 	p2mheader_t header;
 	p2marcstat_t arcStat;
@@ -91,7 +95,7 @@ int p2mCreateFile(cheat_t* cheat, game_t *game, char *szFileName, u8 doheadings)
 	struct tm *currtime;
 	HANDLE hFile;
 	DWORD dwBytesOut;
-	
+
 	timestamp = time(NULL);
 	currtime = localtime(&timestamp);
 	//initialize data structures
@@ -104,7 +108,7 @@ int p2mCreateFile(cheat_t* cheat, game_t *game, char *szFileName, u8 doheadings)
 	//we need two FDs
 	arcStat.numfiles = P2M_NUM_FILES;
 	arcStat.size = sizeof(p2mfd_t) * P2M_NUM_FILES;
-	
+
 	//total up size of data
 	fdUserData.size = 0;
 	while(cheat) {
@@ -171,7 +175,7 @@ int p2mCreateFile(cheat_t* cheat, game_t *game, char *szFileName, u8 doheadings)
 	userdata+=sizeof(wchar_t);
 	memcpy(userdata, &TERM_GAME_NAME, sizeof(u32));
 	userdata+=sizeof(u32);
-	
+
 	cheat = first;
 	while(cheat) {
 		if(!cheat->state && (doheadings || cheat->codecnt > 0)) {
@@ -204,7 +208,7 @@ int p2mCreateFile(cheat_t* cheat, game_t *game, char *szFileName, u8 doheadings)
 	userdata = buffer + arcStat.size + sizeof(p2marcstat_t) + sizeof(p2mheader_t);
 	gs3CryptFileData(userdata, fdUserData.size);
 	fdUserData.crc = gs3GenCrc32(userdata, fdUserData.size);
-	
+
 	fdUserData.offset = arcStat.size + sizeof(p2marcstat_t);
 	header.filesize = filesize - P2M_SIZE_EXCLUDE;
 	arcStat.size = fdUserData.size;
@@ -228,6 +232,7 @@ int p2mCreateFile(cheat_t* cheat, game_t *game, char *szFileName, u8 doheadings)
 	WriteFile(hFile, buffer, filesize, &dwBytesOut, NULL);
 	CloseHandle(hFile);
 	free(buffer);
+    return 0;
 }
 
 /**

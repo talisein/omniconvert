@@ -29,7 +29,6 @@
  */
 
 #include <windows.h>
-#include <winreg.h>
 #include <stdio.h>
 #include <malloc.h>
 #include "abbtypes.h"
@@ -244,7 +243,7 @@ int GetTokenType(const char *str) {
 			return TOK_ARMCODE;
 		}
 	}
-	return TOK_STRING;	
+	return TOK_STRING;
 }
 
 void ResetDevices(u8 mode) {
@@ -271,7 +270,7 @@ int DecryptCode(cheat_t *cheat) {
 		case CRYPT_AR2:
 			ar2BatchDecrypt(cheat);
 			break;
-		case CRYPT_ARMAX: 
+		case CRYPT_ARMAX:
 			ret = armBatchDecryptFull(cheat, armseeds);
 			break;
 		case CRYPT_CB:
@@ -315,13 +314,13 @@ int TranslateCode(cheat_t *cheat) {
 			cheatPrependOctet(cheat, verifier[1]);
 			cheatPrependOctet(cheat, verifier[0]);
 		}
-	} 
+	}
 	return 0;
 }
 
 int EncryptCode(cheat_t *cheat) {
 	int i, ret = 0, err = 0;
-	
+
 	if(cheat->codecnt == 0) return 0;
 	switch(g_outcrypt) {
 		case CRYPT_AR1:
@@ -331,7 +330,7 @@ int EncryptCode(cheat_t *cheat) {
 			ar2AddKeyCode(cheat);
 			ar2BatchEncrypt(cheat);
 			break;
-		case CRYPT_ARMAX: 
+		case CRYPT_ARMAX:
 			ret = armBatchEncryptFull(cheat, armseeds);
 			break;
 		case CRYPT_CB:
@@ -356,7 +355,7 @@ int ConvertCode(cheat_t *cheat) {
 	if((ret = DecryptCode(cheat)) 	!= 0) return ret;
 	if((ret = TranslateCode(cheat))	!= 0) return ret;
 	if((ret = EncryptCode(cheat))	!= 0) return ret;
-	return 0;	
+	return 0;
 }
 
 void CleanupCheats(cheat_t *cheat) {
@@ -370,7 +369,7 @@ void CleanupCheats(cheat_t *cheat) {
 
 void CheatToText(char **textout, int *textmax, cheat_t *cheat) {
 	int err, i;
-	
+
 	if(strlen(cheat->name)) {
 		AppendText(textout, cheat->name, textmax);
 		AppendNewLine(textout, 1, textmax);
@@ -466,7 +465,7 @@ int ProcessText(HWND hwnd) {
 	if(!textout) { return 1; }
 	memset(name, 0, namemax + 1);
 	memset(textout, 0, g_textmax + 1);
-	
+
 	//initialize basic data about the code list.
 	g_game.cnt = 0;
 	if(GetWindowTextLength(GetDlgItem(hwnd, IDC_EDIT_GAMENAME)))
@@ -485,7 +484,7 @@ int ProcessText(HWND hwnd) {
 	//Setup some of the devices for input or output;
 	gs3Init();
 	ar2SetSeed(ar2seeds);
-	
+
 	sprintf(format, "%%%d[^ \t\r]%%n", BUFFER_SIZE);
 	line = textin;
 	while(*line) {
@@ -630,7 +629,7 @@ int ProcessText(HWND hwnd) {
 
 	if(cheat && g_outdevice == DEV_ARMAX && g_verifiermode == AUTO && g_hashdrive) {
 		armMakeDiscHash(&dischash, hwnd, g_hashdrive);
-	} 
+	}
 	ResetDevices(INCRYPT);
 	while(cheat) {
 		int err;
@@ -652,12 +651,12 @@ int ProcessText(HWND hwnd) {
 		CheatToText(&textout, &g_textmax, cheat);
 		cheat = cheat->nxt;
 	}
-	
+
 	//display output text.
 	SetDlgItemText(hwnd, IDC_EDIT_OUT, textout);
 	sprintf(buffer, "%04X", g_gameid);
 	SetDlgItemText(hwnd, IDC_EDIT_GAMEID, buffer);
-	
+
 	//cleanup
 	free(tok);
 	free(name);
@@ -927,7 +926,7 @@ void SetArmHashOption(HWND hwnd, DWORD item) {
 			CheckMenuItem(GetMenu(hwnd), i, MF_CHECKED);
 			GetMenuItemInfo(GetMenu(hwnd), i, FALSE, &mii);
 			g_hashdrive = mii.dwItemData;
-			
+
 		} else  CheckMenuItem(GetMenu(hwnd), i, MF_UNCHECKED);
 	}
 }
@@ -947,9 +946,9 @@ BOOL SaveOptions(void) {
 	if(RegCreateKeyEx(HKEY_CURRENT_USER, REGSUBKEY, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey, &disp) == ERROR_SUCCESS) {
 		RegSetValueEx(hKey, REGINPUT, 0, REG_DWORD, (CONST BYTE*)&g_input, sizeof(DWORD));
 		RegSetValueEx(hKey, REGOUTPUT, 0, REG_DWORD, (CONST BYTE*)&g_output, sizeof(DWORD));
-		RegSetValueEx(hKey, REGPARSE, 0, REG_DWORD, (CONST BYTE*)&parseopt, sizeof(DWORD)); 
-		RegSetValueEx(hKey, REGVERIFIER, 0, REG_DWORD, (CONST BYTE*)&g_verifiermode, sizeof(DWORD)); 
-		RegSetValueEx(hKey, REGLOC, 0, REG_DWORD, (CONST BYTE*)&g_region, sizeof(DWORD)); 
+		RegSetValueEx(hKey, REGPARSE, 0, REG_DWORD, (CONST BYTE*)&parseopt, sizeof(DWORD));
+		RegSetValueEx(hKey, REGVERIFIER, 0, REG_DWORD, (CONST BYTE*)&g_verifiermode, sizeof(DWORD));
+		RegSetValueEx(hKey, REGLOC, 0, REG_DWORD, (CONST BYTE*)&g_region, sizeof(DWORD));
 		RegSetValueEx(hKey, REGGAMEID, 0, REG_DWORD, (CONST BYTE*)&g_gameid, sizeof(DWORD));
 		RegSetValueEx(hKey, REGAR2, 0, REG_DWORD, (CONST BYTE*)&ar2seeds, sizeof(DWORD));
 		RegSetValueEx(hKey, REGGS3KEY, 0, REG_DWORD, (CONST BYTE*)&g_gs3key, sizeof(DWORD));
@@ -987,7 +986,7 @@ BOOL EnumerateDrivesAddToMenu(HWND hwnd) {
 	UINT type, count = 0;
 	char pathname[MAX_PATH + 1], szMenu[MAX_PATH + 1];
 	MENUITEMINFO mii;
-	
+
 	//initialize the menu item info
 	mii.cbSize	= sizeof(MENUITEMINFO);
 	mii.fMask	= MIIM_STATE | MIIM_ID | MIIM_TYPE | MIIM_DATA;
@@ -996,7 +995,7 @@ BOOL EnumerateDrivesAddToMenu(HWND hwnd) {
 	mii.wID		= ID_ARMAXHASH_NOHASH + 1;
 	mii.dwTypeData	= szMenu;
 	mii.cch		= 0;
-	
+
 	drives = GetLogicalDrives();
 	for(i = 0; i < 26; i++) {
 		if((drives >> i) & 1) {
@@ -1010,7 +1009,7 @@ BOOL EnumerateDrivesAddToMenu(HWND hwnd) {
 				InsertMenuItem(GetMenu(hwnd), ID_ARMAXHASH_NOHASH, FALSE, &mii);
 				count++;
 			}
-		}	
+		}
 	}
 	if(count > 0) {
 		DrawMenuBar(hwnd);
@@ -1024,7 +1023,7 @@ BOOL CALLBACK ArDlgProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam
 	u32 key;
 	u32 ar1seed = AR1_SEED;
 	u8 *tseed = (u8*)&ar1seed;
-		
+
 	switch(message) {
 		case WM_INITDIALOG:
 			SendDlgItemMessage(hwndDlg,IDC_EDIT_AR2,EM_SETLIMITTEXT,NUM_DIGITS_OCTET,0);
@@ -1081,7 +1080,7 @@ BOOL CALLBACK DlgProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam) 
 
 			//Get options from registry (if extant)
 			LoadOptions();
-			
+
 			//Set the options based on reg values or defaults
 			SetInputCrypt(hwndDlg, g_input);
 			SetOutputCrypt(hwndDlg, g_output);
@@ -1123,7 +1122,7 @@ BOOL CALLBACK DlgProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam) 
 				case 1: // Submenu "Edit"
 					if (hCtrl == GetDlgItem(hwndDlg, IDC_EDIT_IN) ||
 					    hCtrl == GetDlgItem(hwndDlg, IDC_EDIT_GAMENAME) ||
-					    hCtrl == GetDlgItem(hwndDlg, IDC_EDIT_GAMEID)) { 
+					    hCtrl == GetDlgItem(hwndDlg, IDC_EDIT_GAMEID)) {
 						// Enable "Undo" if edit-control operation can be undone
 						EnableMenuItem((HMENU)wParam, ID_EDIT_UNDO,
 							SendMessage(hCtrl, EM_CANUNDO, 0, 0) ? MF_ENABLED : MF_GRAYED);
@@ -1187,8 +1186,8 @@ BOOL CALLBACK DlgProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam) 
 				SetArmHashOption(hwndDlg, LOWORD(wParam));
 				return 0;
 			}
-			
-			switch (LOWORD(wParam)) { 
+
+			switch (LOWORD(wParam)) {
 				case ID_BTN_CONVERT:
 					ProcessText(hwndDlg);
 					CleanupCheats(g_firstcheat);
@@ -1288,7 +1287,7 @@ BOOL CALLBACK DlgProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam) 
 					if (FileSaveDlg(&ofn))
 						SaveTextFile(hwndDlg, szFileName);
 					return 0;
-				
+
 				case ID_FILE_SAVEASARMAX: {
 					u32 tmp = g_outcrypt;
 					u32 tmp2 = g_outdevice;
@@ -1444,7 +1443,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 
 	hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDA_ACCEL_TABLE));
 	if(!hAccel) MessageBox(NULL, "Could not load accelerators", APPNAME, MB_ICONERROR | MB_OK);
-	
+
 	// Message loop
 	while (GetMessage(&msg, NULL, 0, 0)) {
 		if(TranslateAccelerator(hwnd, hAccel, &msg)) {

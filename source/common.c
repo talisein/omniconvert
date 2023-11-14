@@ -27,10 +27,15 @@
  *  Various useful routines that serve multiple purposes.
  */
 
-#include <malloc.h>
-#include <windows.h>
-#include "abbtypes.h"
+#include <ctype.h>
+#include <stdarg.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 #include "common.h"
+
+#include "abbtypes.h"
 
 int IsHexStr(const char *s) {
 	while (*s) {
@@ -89,7 +94,7 @@ int AppendText(char **dest, const char *src, u32 *textmax) {
 	return 0;
 }
 
-int PrependText(char **dest, const char *src, u32 *textmax) {
+void PrependText(char **dest, const char *src, u32 *textmax) {
 	char *tmp;
 	int slen = strlen(*dest);
 	int len = strlen(src) + slen + 3;

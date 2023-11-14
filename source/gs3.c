@@ -24,10 +24,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <malloc.h>
-#include <time.h>
-#include "abbtypes.h"
+#include <stdlib.h>
+
 #include "gs3.h"
+
+#include "abbtypes.h"
 
 //mask for the msb/sign bit
 #define SMASK 0x80000000
@@ -159,7 +160,7 @@ unsigned short gs3GenCrc (u32 const *code, const int count) {
 	int i;
 
 	if(!swap) return 0;
-	
+
 	for(i = 0; i < count; i++) {
 		swap[i] = swapbytes(code[i]);
 	}
@@ -177,7 +178,7 @@ End Version 5+ Routines.
   *  Fire also implements their own bogus version of a CRC32.  I've never seen this
   *  variation before.  This is used in cheat update files and save archives.
   *  Cheat files are GS5+, but this has been in the save files for a long time.
-  *  
+  *
 */
 
 #define GS3_POLY 	0x04C11DB7
@@ -350,7 +351,7 @@ Initialize the encryption tables using the default halfword seeds.
 This should be called prior to using the encryption routines, to reset the tables' states.
 */
 void gs3Init() {
-	int i;
+//	int i;
 	if(!gs3_init) gs3CcittBuildSeeds();
 	gs3BuildSeeds(gs3_hseeds[0], gs3_hseeds[1], gs3_hseeds[2]);
 	gs3_init = 1;
@@ -384,7 +385,7 @@ u8 gs3Decrypt(u32* address, u32* value) {
 	u32 command, tmp = 0, tmp2 = 0, mask = 0;
 	u8 flag, *seedtbl, key;
 	int size, i = 0;
-	
+
 	//First, check to see if this is the second line
 	//  of a two-line code type.
 	if(gs3_linetwo) {
@@ -431,7 +432,7 @@ u8 gs3Decrypt(u32* address, u32* value) {
 		}
 	  }
 	}
-	
+
 	//Now do normal encryptions.
 	command = *address & 0xFE000000;
 	key = (*address >> 25) & 0x7;
@@ -439,7 +440,7 @@ u8 gs3Decrypt(u32* address, u32* value) {
 		gs3_linetwo = 1;
 		gs3_xkey = key;
 	}
-	
+
 	if((command >> 28) == 7) return 0;  //do nothing on verifier lines.
 
 	switch(key) {
@@ -457,7 +458,7 @@ u8 gs3Decrypt(u32* address, u32* value) {
 			*address = ((mask ^ gs3_hseeds[2]) | command) & DECRYPT_MASK;
 			break;
 		}
-		case 2: {  //Key 2.  The original encryption used publicly.  Fell into disuse 
+		case 2: {  //Key 2.  The original encryption used publicly.  Fell into disuse
 					//around August, 2004.
 			seedtbl = gs3_decrypt_seeds[GS3_CRYPT_2].table;
 			size = gs3_decrypt_seeds[GS3_CRYPT_2].size;
@@ -652,11 +653,11 @@ u8 gs3Encrypt(u32* address, u32* value, u8 key)
 Decrypt a batch of codes (lines).
 */
 void gs3BatchDecrypt(cheat_t *cheat) {
-	int i, j;
+	int i;
 	for(i = 0; i < cheat->codecnt;) {
 		if((cheat->code[i] >> 28) == 7 && !gs3_linetwo) {  //if the code starts with 7, it's a verifier, unless it's line two of two-line code type.
 			cheatRemoveOctets(cheat, i+1, 2);
-		} else { 
+		} else {
 			gs3Decrypt(&cheat->code[i], &cheat->code[i+1]);
 			i+=2;
 		}
@@ -685,7 +686,7 @@ void gs3CreateVerifier(u32 *address, u32 *value, u32 *codes, int size) {
 }
 
 void gs3AddVerifier(cheat_t *cheat) {
-	int i;
+	//int i;
 	u32 addr, val;
 	gs3CreateVerifier(&addr, &val, cheat->code, cheat->codecnt);
 	cheatPrependOctet(cheat, val);

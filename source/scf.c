@@ -1,7 +1,12 @@
-#include <malloc.h>
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "scf.h"
+
 #include "abbtypes.h"
 #include "gs3.h"
-#include <stdio.h>
 
 //maximum size of the name in a Swap Magic Coder File
 #define SCF_NAME_MAX_SIZE	100
@@ -85,10 +90,13 @@ int scfCreateFile(cheat_t* cheat, game_t *game, char *szFileName) {
 
 	//setup the game data
 	size = strlen(game->name);
+    assert(size < SCF_NAME_MAX_SIZE);
+    /*  game->name is NAME_MAX_SIZE == 50, so this shouldn't happen
 	if(size > SCF_NAME_MAX_SIZE) {
 		size = SCF_NAME_MAX_SIZE;
 		game->name[SCF_NAME_MAX_SIZE] = '\0';
 	}
+    */
 	scfGame.name_len	= (size + 1) * sizeof(char);
 	scfGame.num_cheats	= scfHeader.num_cheats;
 	//add in the game data sizes
@@ -101,7 +109,7 @@ int scfCreateFile(cheat_t* cheat, game_t *game, char *szFileName) {
 		return 1;
 	}
 	memset(buffer, 0, filesize);
-	
+
 	userdata = buffer + sizeof(t_scf_header);
 	memcpy(userdata, &scfGame.num_cheats, sizeof(u16));
 	userdata += sizeof(u16);
@@ -109,7 +117,7 @@ int scfCreateFile(cheat_t* cheat, game_t *game, char *szFileName) {
 	userdata++;
 	memcpy(userdata, game->name, scfGame.name_len);
 	userdata += scfGame.name_len;
-	
+
 	cheat = first;
 	while(cheat) {
 		if(!cheat->state && cheat->codecnt > 0) {
@@ -130,7 +138,7 @@ int scfCreateFile(cheat_t* cheat, game_t *game, char *szFileName) {
 		}
 		cheat = cheat->nxt;
 	}
-	
+
 	scfHeader.crc32 = SCF_CRC_MASK ^ gs3GenCrc32(buffer + sizeof(t_scf_header), scfHeader.datasize);
 	memcpy(buffer, &scfHeader, sizeof(t_scf_header));
 
@@ -144,4 +152,5 @@ int scfCreateFile(cheat_t* cheat, game_t *game, char *szFileName) {
 	WriteFile(hFile, buffer, filesize, &dwBytesOut, NULL);
 	CloseHandle(hFile);
 	free(buffer);
+    return 0;
 }

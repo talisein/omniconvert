@@ -658,7 +658,7 @@ end:
     /* free allocated memory */
     big_int_destroy(tmp);
 
-    return 0;
+    return result;
 }
 
 /**
@@ -807,7 +807,7 @@ int big_int_rand(big_int_rnd_fp rand_func, size_t n_bits, big_int *answer)
     big_int_word *num, *num_end;
 
     assert(rand_func != NULL);
-    assert(answer != NULL); 
+    assert(answer != NULL);
 
     n_words = (n_bits / BIG_INT_WORD_BITS_CNT) + 1;
     n_bits %= BIG_INT_WORD_BITS_CNT;

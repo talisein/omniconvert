@@ -29,14 +29,27 @@
  *  in codes is decrypted and encrypted properly.
  */
 
-#include "armax.h"
-#include <windows.h>
+#include <assert.h>
+#include <limits.h>
+#include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+#include "armax.h"
+
+#include "ar2.h"
+#include "crc32.h"
 
 #define NUM_CHARS_ARM_CODE	15
 
 //The disc hash uses only the first 256 KB of the game ELF
 #define ELF_CRC_SIZE		0x40000
+
+static inline u32 U32P_TO_U32(u32* p) {
+    assert((uintptr_t)p < (uintptr_t)UINT_MAX);
+    return (u32)(uintptr_t)p;
+}
 
 enum {
 	ERR_NODRIVES = 1,
@@ -226,12 +239,12 @@ void armMakeFolder(cheat_t *cheat, u32 gameid, u8 region) {
  * and generate and auto-recognition hash for it.
  */
 int armMakeDiscHash(u32 *hash, HWND hwnd, char drive) {
-	int len, i;
+	int len; //UNUSED i;
 	DWORD read;
 	HANDLE hFile;
-	LRESULT idx;
+	//UNUSED LRESULT idx;
 	char filename[MAX_PATH + 1];
-	char tmp[MAX_PATH + 1];
+	//UNUSED char tmp[MAX_PATH + 1];
 	char *buffer, *elf, *end;
 	const char *cdrom = "cdrom0:\\";
 	u32 crc_sys = 0xFFFFFFFF, crc_elf = 0xFFFFFFFF;
@@ -248,7 +261,7 @@ int armMakeDiscHash(u32 *hash, HWND hwnd, char drive) {
 				"No System File", MB_ICONERROR | MB_OK);
 		return ERR_NOCNF;
 	}
-	
+
 	//Could just be hard-coded length of 256
 	len = GetFileSize(hFile, NULL);
 	buffer = (char *)malloc(len);
@@ -465,14 +478,14 @@ void decryptcode(u32 *seeds, u32 *code) {
 }
 
 u8 getbitstring(u32 *ctrl, u32 *out, u8 len) {
-	u32 *ptr=(u32*)(ctrl[0]+(ctrl[1]<<2));
+	u32 *ptr=(u32*)(uintptr_t)( ctrl[0] + (ctrl[1]<<2) );
 
 	*out = 0;
 	while (len--) {
 		if (ctrl[2] > 0x1F) {
 			ctrl[2] = 0;
 			ctrl[1]++;
-			ptr = (u32*)(ctrl[0]+(ctrl[1]<<2));
+			ptr = (u32*)(uintptr_t)(ctrl[0]+(ctrl[1]<<2));
 		}
 		if (ctrl[1] >= ctrl[3]) return 0;
 		*out = ((*out<<1) | ((*ptr >> (0x1F-ctrl[2])) & 1));
@@ -482,7 +495,7 @@ u8 getbitstring(u32 *ctrl, u32 *out, u8 len) {
 }
 
 u8 batchdecrypt(u32 *codes, u16 size) {
-	u32 tmp,tmp2,*ptr=codes;
+	u32 tmp,*ptr=codes; //UNUSED tmp2
 	u32 tmparray[4] = { 0 },tmparray2[8] = { 0 };
 
 	tmp = (size >> 1);
@@ -491,7 +504,7 @@ u8 batchdecrypt(u32 *codes, u16 size) {
 		ptr+=2;
 	}
 
-	tmparray[0] = (u32)codes;
+	tmparray[0] = U32P_TO_U32(codes);
 	tmparray[1] = 0;
 	tmparray[2] = 4; //skip crc
 	tmparray[3] = size;
@@ -680,9 +693,9 @@ s16 armReadVerifier(u32 *code, u32 size) {
 	//Static array for expansion sizes
 	//6:?, 10:?, 12:?, 19:folder content, 8:folder, 7:?, 32:disc hashes, maybe others
 	static const u8 exp_size[8] = { 6, 10, 12, 19, 19, 8, 7, 32 };
-	
+
 	//setup initial controll array
-	ctrl[0] = (u32)code;
+	ctrl[0] = U32P_TO_U32(code);
 	ctrl[1] = 1;			//skip first word
 	ctrl[2] = 8;			//skip first 8 bits
 	ctrl[3] = size;
@@ -696,7 +709,7 @@ s16 armReadVerifier(u32 *code, u32 size) {
 		if(!ret) return -1;
 		bits += 3;
 		//retrieve the expansion data, if possible, but we don't actually need it.
-		if(ret = getbitstring(ctrl, &term, exp_size[exp_size_ind])) { 
+		if((ret = getbitstring(ctrl, &term, exp_size[exp_size_ind]))) {
 			ret = getbitstring(ctrl, &term, 1);		//get next terminator value
 		}
 		if(!ret) return -1;
@@ -717,7 +730,7 @@ u8 armBatchDecryptFull(cheat_t *cheat, u32 ar2key) {
 
 	ret = batchdecrypt(cheat->code, cheat->codecnt);
 	if(!ret) return 1;
-	
+
 	if((lines = armReadVerifier(cheat->code, cheat->codecnt)) == -1) return 1;
 	size = cheat->codecnt - (lines << 1);
 	if(size > 0) {
@@ -735,7 +748,7 @@ u8 armBatchEncryptFull(cheat_t *cheat, u32 ar2key) {
 	u8 ret;
 	u32 *code, size, lines;
 	int i;
-	
+
 	if((lines = armReadVerifier(cheat->code, cheat->codecnt)) == -1) return 1;
 	size = cheat->codecnt - (lines << 1);
 	if(size > 0) {
