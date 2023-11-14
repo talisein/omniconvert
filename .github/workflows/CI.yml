@@ -113,6 +113,8 @@ jobs:
 
       - if: ${{ matrix.flavor == 'windows' }}
         uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: win32
 
       - name: Configure
         run: meson setup build --buildtype release
