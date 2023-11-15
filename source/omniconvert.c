@@ -370,48 +370,49 @@ void CleanupCheats(cheat_t *cheat) {
 }
 
 void CheatToText(char **textout, int *textmax, cheat_t *cheat) {
-	int i;//UNUSED err
+	u32 i;//UNUSED err
 
 	if(strlen(cheat->name)) {
-		AppendText(textout, cheat->name, textmax);
-		AppendNewLine(textout, 1, textmax);
+		AppendTexti32(textout, cheat->name, textmax);
+		AppendNewLinei32(textout, 1, textmax);
 	}
 	if(strlen(cheat->comment)) {
-		AppendText(textout, cheat->comment, textmax);
-		if(!strchr(NEWLINE, (*textout)[strlen(*textout) - 1])) AppendNewLine(textout, 1, textmax);
+		AppendTexti32(textout, cheat->comment, textmax);
+		if(!strchr(NEWLINE, (*textout)[strlen(*textout) - 1])) AppendNewLinei32(textout, 1, textmax);
 	}
 
 	if(g_outcrypt == CRYPT_ARMAX) {
 		char alpha[16];
 		for(i = 0; i < cheat->codecnt; i+=2) {
 			bintoalpha(alpha, cheat->code, i);
-			AppendText(textout, alpha, textmax);
-			AppendNewLine(textout, 1, textmax);
+			AppendTexti32(textout, alpha, textmax);
+			AppendNewLinei32(textout, 1, textmax);
 		}
 	}
 	else {
 		for(i = 0; i < cheat->codecnt; i+=2) {
 			char tmp[20];
-			sprintf(tmp, "%08X %08X", cheat->code[i], cheat->code[i+1]);
-			AppendText(textout, tmp, textmax);
-			AppendNewLine(textout, 1, textmax);
+			snprintf(tmp, sizeof(tmp), "%08X %08X", cheat->code[i], cheat->code[i+1]);
+			AppendTexti32(textout, tmp, textmax);
+			AppendNewLinei32(textout, 1, textmax);
 		}
 	}
 	if(cheat->state) {
-		AppendText(textout, transGetErrorText(cheat->state), textmax);
-		AppendNewLine(textout, 2, textmax);
+		AppendTexti32(textout, transGetErrorText(cheat->state), textmax);
+		AppendNewLinei32(textout, 2, textmax);
 		return;
 	}
-	AppendNewLine(textout, 1, textmax);
+	AppendNewLinei32(textout, 1, textmax);
 }
 
 inline void ProcessCode(char **textout, int *textmax, char delim, cheat_t *cheat) {
-	int err, i;
+	int err;
+    u32 i;
 
-	if(strlen(*textout) && !strchr(NEWLINE, delim)) AppendNewLine(textout, 1, textmax);
+	if(strlen(*textout) && !strchr(NEWLINE, delim)) AppendNewLinei32(textout, 1, textmax);
 	if((err = ConvertCode(cheat)) != 0) {
-		AppendText(textout, transGetErrorText(err), textmax);
-		AppendNewLine(textout, 2, textmax);
+		AppendTexti32(textout, transGetErrorText(err), textmax);
+		AppendNewLinei32(textout, 2, textmax);
 		return;
 	}
 
@@ -419,20 +420,20 @@ inline void ProcessCode(char **textout, int *textmax, char delim, cheat_t *cheat
 		char alpha[16];
 		for(i = 0; i < cheat->codecnt; i+=2) {
 			bintoalpha(alpha, cheat->code, i);
-			AppendText(textout, alpha, textmax);
-			AppendNewLine(textout, 1, textmax);
+			AppendTexti32(textout, alpha, textmax);
+			AppendNewLinei32(textout, 1, textmax);
 		}
-		AppendNewLine(textout, 1, textmax);
+		AppendNewLinei32(textout, 1, textmax);
 		return;
 	}
 
 	for(i = 0; i < cheat->codecnt; i+=2) {
 		char tmp[20];
 		sprintf(tmp, "%08X %08X", cheat->code[i], cheat->code[i+1]);
-		AppendText(textout, tmp, textmax);
-		AppendNewLine(textout, 1, textmax);
+		AppendTexti32(textout, tmp, textmax);
+		AppendNewLinei32(textout, 1, textmax);
 	}
-	AppendNewLine(textout, 1, textmax);
+	AppendNewLinei32(textout, 1, textmax);
 	return;
 }
 
@@ -459,7 +460,7 @@ int ProcessText(HWND hwnd) {
 	if(!textin) {return 1;}
 	memset(textin, 0, g_textmax);
 	GetDlgItemText(hwnd, IDC_EDIT_IN, textin, g_textmax);
-	AppendNewLine(&textin, 2, &g_textmax);
+	AppendNewLinei32(&textin, 2, &g_textmax);
 
 	textout = malloc(g_textmax+1);
 
@@ -528,7 +529,7 @@ int ProcessText(HWND hwnd) {
 				}
 				line += chrs + 1;
 			}
-		} else if(*line = '\r' && toknum > 0) {  //save lines that are NEWLINE only so cheats can be distinguished.
+		} else if(*line == '\r' && toknum > 0) {  //save lines that are NEWLINE only so cheats can be distinguished.
 			if((toknum + 1) >= tokmax) {
 				tokmax += TOK_MAX_STEP;
 				tok = (token_t*)realloc(tok, tokmax * sizeof(token_t));
@@ -1022,7 +1023,6 @@ BOOL EnumerateDrivesAddToMenu(HWND hwnd) {
 	return FALSE;
 }
 
-DLGPROC ArDlgproc;
 INT_PTR CALLBACK ArDlgProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam) {
 	char buffer[NUM_DIGITS_OCTET + 1] = { 0 };
 	u32 key;
@@ -1057,7 +1057,6 @@ INT_PTR CALLBACK ArDlgProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 	return FALSE;
 }
 
-DLGPROC Dlgproc;
 INT_PTR CALLBACK DlgProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam) {
 	static HWND hCtrl;
 	static char szFileName[MAX_PATH];

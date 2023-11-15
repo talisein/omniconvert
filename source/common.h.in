@@ -41,8 +41,10 @@ u32 swapbytes(unsigned int val);
 
 //Text crap
 int AppendText(char **dest, const char *src, u32 *textmax);
+int AppendTexti32(char **dest, const char *src, int *textmax);
 void PrependText(char **dest, const char *src, u32 *textmax);
 int AppendNewLine(char **dest, int num, u32 *textmax);
+int AppendNewLinei32(char **dest, int num, int *textmax);
 
 //MsgBox
 int MsgBox(HWND hwnd, UINT uType, const char *szFormat, ...);
