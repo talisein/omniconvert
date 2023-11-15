@@ -291,18 +291,7 @@ int transStdToMax(cheat_t *dest, cheat_t *src, int *idx) {
 			} else {
 				size 	= HIBYTE32(code[*idx]) & 0xF;
 				if(size < 1 && g_indevice == DEV_GS3) size = 1;  //GS3 does not do 8-bit writes (or 32 really).
-
-                /* BUG?
-                 * was:   code[*idx] & 0xFFFFFF + code[*idx + 1];
-                 * But the operator precedence makes it
-                 *        code[*idx] & (0xFFFFFF + code[*idx + 1]);
-                 * Instead of
-                 *        (code[*idx] & 0xFFFFFF) + code[*idx + 1];
-                 *
-                 * For now, the previous behavior is kept to silence the
-                 * warning, but see issue #1 and add some test case to check.
-                */
-				address = code[*idx] & (0xFFFFFF + code[*idx + 1]);
+				address = (code[*idx] & 0xFFFFFF) + code[*idx + 1];
 				offset 	= code[*idx + 2];
 				value 	= code[*idx + 3] & valmask[size];
 				count 	= 0;
