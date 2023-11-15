@@ -529,7 +529,7 @@ int ProcessText(HWND hwnd) {
 				}
 				line += chrs + 1;
 			}
-		} else if(*line = '\r' && toknum > 0) {  //save lines that are NEWLINE only so cheats can be distinguished.
+		} else if(*line == '\r' && toknum > 0) {  //save lines that are NEWLINE only so cheats can be distinguished.
 			if((toknum + 1) >= tokmax) {
 				tokmax += TOK_MAX_STEP;
 				tok = (token_t*)realloc(tok, tokmax * sizeof(token_t));
