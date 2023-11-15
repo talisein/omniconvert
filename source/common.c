@@ -27,7 +27,9 @@
  *  Various useful routines that serve multiple purposes.
  */
 
+#include <assert.h>
 #include <ctype.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <string.h>
 #include <stdlib.h>
@@ -78,6 +80,17 @@ u32 swapbytes(unsigned int val) {
 	return (val << 24) | ((val << 8) & 0xFF0000) | ((val >> 8) & 0xFF00) | (val >> 24);
 }
 
+int AppendTexti32(char **dest, const char *src, int *textmax)
+{
+    assert(*textmax >= 0);
+
+    u32 max = (u32)*textmax;
+    int res = AppendText(dest, src, &max);
+    assert(max < (u32)INT_MAX);
+    *textmax = max;
+    return res;
+}
+
 int AppendText(char **dest, const char *src, u32 *textmax) {
 	int slen = strlen(*dest);
 	int len = strlen(src) + slen + 3;
@@ -113,6 +126,17 @@ void PrependText(char **dest, const char *src, u32 *textmax) {
 	strcat(*dest, tmp);
 	free(tmp);
 }
+
+int AppendNewLinei32(char **dest, int num, int *textmax)
+{
+    assert(*textmax >= 0);
+
+    u32 max = *textmax;
+    int res = AppendNewLine(dest, num, &max);
+    assert(max < (u32)INT_MAX);
+    return res;
+}
+
 
 int AppendNewLine(char **dest, int num, u32 *textmax) {
 	int ret, i;
